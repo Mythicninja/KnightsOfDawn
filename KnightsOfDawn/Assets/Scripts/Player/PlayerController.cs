@@ -51,20 +51,20 @@ public class PlayerController : Singleton<PlayerController>
     }
 
     private void Move() { 
-        float speed = run() ? moveSpeed * 2f : moveSpeed;
+        float speed = run() ? runSpeed : moveSpeed;
         // actually moves the sprite using the inputs
         rb.MovePosition(rb.position + movement * (speed * Time.fixedDeltaTime));
     }
 
     private bool run() {
-        if (Input.GetKeyDown(KeyCode.Space)) {
+        if (Input.GetKeyDown(KeyCode.LeftShift)) {
            return true;
         }
-        else if (Input.GetKeyUp(KeyCode.Space)) {
+        else if (Input.GetKeyUp(KeyCode.LeftShift)) {
             return false;
         }
         // Return the current state of the space key (running or not)
-        return Input.GetKey(KeyCode.Space);
+        return Input.GetKey(KeyCode.LeftShift);
     }
 
 }
