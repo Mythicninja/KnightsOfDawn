@@ -15,18 +15,17 @@ public class Sword : MonoBehaviour
         myAnimator = GetComponent<Animator>();
         playerControls = new PlayerControls();
     }
-
     private void OnEnable() {
         playerControls.Enable();
     }
-
-    private void Update() {
-        if (Input.GetKey(KeyCode.K))
-        {
-            Attack();
-        }
+    private void OnDisable()
+    {
+        playerControls.Disable();
     }
-    private void Attack() {
-        myAnimator.SetFloat("attack", 1);
+    private void Update(){
+        playerControls.Combat.Attack.performed += ctx => OnAttack();
     }
+   public void OnAttack(){
+        myAnimator.SetInteger("Attack", 2);
+   }
 }

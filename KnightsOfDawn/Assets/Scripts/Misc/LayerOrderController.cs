@@ -16,29 +16,20 @@ public class OrderInLayerController : MonoBehaviour
     }
     private void Update()
     {
-        // Check for the condition to change the order in layer
-        if (Input.GetKeyDown(KeyCode.K))
+        if (Input.GetKeyDown(KeyCode.L)) // Check for the condition to change the order in layer
         {
             if (!isActionInProgress)
             {
-                // Start the action
                 isActionInProgress = true;
-
-                // Change the order in layer
                 ChangeOrderInLayer(newOrderInLayer);
-
-                // Start the coroutine to return to the original order after a delay
                 StartCoroutine(ReturnOrginalOrder(returnTime));
             }
         }
     }
     private void ChangeOrderInLayer(int newOrder)
     {
-        // Set the target sorting layer
-        GetComponent<SpriteRenderer>().sortingLayerName = targetSortingLayer;
-
-        // Change the order in layer
-        GetComponent<SpriteRenderer>().sortingOrder = newOrder;
+        GetComponent<SpriteRenderer>().sortingLayerName = targetSortingLayer;  // Set the target sorting layer
+        GetComponent<SpriteRenderer>().sortingOrder = newOrder; // Change the order in layer
     }
 
     private IEnumerator ReturnOrginalOrder(float delay) {
