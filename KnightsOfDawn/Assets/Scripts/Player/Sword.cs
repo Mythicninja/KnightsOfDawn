@@ -6,9 +6,10 @@ using UnityEngine.InputSystem;
 // this class is used to animate a sword after the attack button is pressed
 public class Sword : MonoBehaviour
 {
+    public Transform weaponColliderX;
+    public Transform weaponColliderY;
     private PlayerControls playerControls;
     private Animator myAnimator;
-    private PlayerController playerController;
     private Vector2 attackDirection;
     private Vector2 lastMoveDirection;
     public string targetSortingLayer = "YourTargetSortingLayer"; // what layer do you want to send it to
@@ -17,12 +18,16 @@ public class Sword : MonoBehaviour
     private bool isActionInProgress = false;
     private bool isAttacking = false;
     public float returnTime;   // Time to return to the original order
+    public float attackRate = 2f; // Basically a cool down for the attacks to avoid spam
+    private float nextAttackTime = 0f;
     
 
     private void Awake() {
         myAnimator = GetComponent<Animator>();
         playerControls = new PlayerControls();
         originalOrderInLayer = GetComponent<SpriteRenderer>().sortingOrder;
+        weaponColliderX.gameObject.SetActive(false);
+        weaponColliderY.gameObject.SetActive(false);
     }
     private void OnEnable() {
         playerControls.Enable();
@@ -51,15 +56,38 @@ public class Sword : MonoBehaviour
             }
         }
         // attack based on the current direction or the direction in idle
-        if (playerControls.Combat.Attack.triggered) {
-            OnAttack(lastMoveDirection);
+        if (Time.time >= nextAttackTime) {
+            if (playerControls.Combat.Attack.triggered) {
+                OnAttack(lastMoveDirection);
+                nextAttackTime = Time.time + 1f / attackRate; // cooldown for attack
+            }
         }
     }
    public void OnAttack(Vector2 direction) {
         isAttacking = true;
         myAnimator.SetInteger("Attack", 2);
-        myAnimator.SetFloat("Direction_x", direction.x);
-        myAnimator.SetFloat("Direction_y", direction.y); 
+        
+        // This section makes it so it only attacks in one of four directions (to avoid diagonals)
+        float absX = Mathf.Abs(direction.x);
+        float absY = Mathf.Abs(direction.y);
+        if (absX > absY) {
+            // Attack along the horizontal axis
+            myAnimator.SetFloat("Direction_x", Mathf.Sign(direction.x));
+            myAnimator.SetFloat("Direction_y", 0f);
+            // Determine the rotation based on the attack direction
+            weaponColliderX.gameObject.SetActive(true);
+            float rotationY = direction.x > 0 ? 0f : -180f;
+            weaponColliderX.transform.rotation = Quaternion.Euler(0, rotationY, 0);
+        }
+        else {
+            // Attack along the vertical axis
+            myAnimator.SetFloat("Direction_x", 0f);
+            myAnimator.SetFloat("Direction_y", Mathf.Sign(direction.y));
+            // Determine the rotation based on the attack direction
+            weaponColliderY.gameObject.SetActive(true);
+            float rotationX = direction.y > 0 ? 0f : -180f;
+            weaponColliderY.transform.rotation = Quaternion.Euler(rotationX, 0, 0);
+        }
 
         // the blocks below invert the order layering portion for the up and down attacks
         if (direction.y > 0) {
@@ -71,13 +99,19 @@ public class Sword : MonoBehaviour
             StartCoroutine(ReturnOrginalOrder(myAnimator.GetCurrentAnimatorStateInfo(0).length));
         }
 
-        StartCoroutine(ResetAttackAnimation());
+        StartCoroutine(ResetAttack());
    }
 
-   private IEnumerator ResetAttackAnimation()
+   private IEnumerator ResetAttack()
     {
         yield return new WaitForSeconds(myAnimator.GetCurrentAnimatorStateInfo(0).length);
         myAnimator.SetInteger("Attack", -2);
+        if (weaponColliderX.gameObject.activeSelf) {
+            weaponColliderX.gameObject.SetActive(false);
+        }
+        else {
+            weaponColliderY.gameObject.SetActive(false);
+        }
         isAttacking = false;
     }
 
